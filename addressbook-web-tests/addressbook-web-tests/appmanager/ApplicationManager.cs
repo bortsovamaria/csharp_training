@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WebAddressbookTests
@@ -16,8 +17,9 @@ namespace WebAddressbookTests
         protected LoginHelper loginHelper;
         protected NavigationHelper navigator;
         protected GroupHelper groupHelper;
+        private static ThreadLocal<ApplicationManager> app = new ThreadLocal<ApplicationManager>();
 
-        public ApplicationManager()
+        private ApplicationManager()
         {
             driver = new FirefoxDriver(new FirefoxBinary(@"C:\Program Files\Mozilla Firefox-45\firefox.exe"), new FirefoxProfile());
             baseURL = "http://localhost:8080/";
@@ -26,15 +28,7 @@ namespace WebAddressbookTests
             groupHelper = new GroupHelper(this);
         }
 
-        public IWebDriver Driver
-        {
-            get
-            {
-                return driver;
-            }
-        }
-
-        public void Stop()
+        ~ApplicationManager()
         {
             try
             {
@@ -43,6 +37,23 @@ namespace WebAddressbookTests
             catch (Exception)
             {
                 // Ignore errors if unable to close the browser
+            }
+        }
+
+        public static ApplicationManager GetInstance()
+        {
+            if (!app.IsValueCreated)
+            {
+                app.Value = new ApplicationManager();
+            }
+            return app.Value;
+        }
+
+        public IWebDriver Driver
+        {
+            get
+            {
+                return driver;
             }
         }
 
